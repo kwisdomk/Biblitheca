@@ -14,20 +14,13 @@ export default function ContactSection() {
   };
 
   const handleResumeDownload = () => {
-    // Track download (you can integrate with Vercel Analytics)
+    // Track download
     const link = document.createElement("a");
     link.href = "/resume.pdf";
     link.download = "Wisdom_Kinoti_Resume.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    // Log to analytics
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "resume_download", {
-        timestamp: new Date().toISOString(),
-      });
-    }
   };
 
   return (

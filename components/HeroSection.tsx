@@ -42,14 +42,13 @@ export default function HeroSection() {
     timeout = setTimeout(typeChar, 500);
 
     return () => clearTimeout(timeout);
-  }, []);
+  }, [terminalLines]);
 
   useEffect(() => {
     const interval = setInterval(() => setCursorVisible((prev) => !prev), 500);
     return () => clearInterval(interval);
   }, []);
 
-  // Animate system stats
   useEffect(() => {
     const interval = setInterval(() => {
       setSystemStats({
@@ -73,8 +72,34 @@ export default function HeroSection() {
   );
 
   return (
-    <section className="section-padding min-h-screen flex items-center justify-center bg-gradient-to-b from-black to-gray-900">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl w-full">
+    <section className="hero-grid relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0">
+        <motion.div
+          animate={{
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        />
+        <motion.div
+          animate={{
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+          className="absolute bottom-20 right-10 w-72 h-72 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        />
+        <motion.div
+          animate={{
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 9, repeat: Infinity, delay: 4 }}
+          className="absolute top-1/2 right-1/3 w-72 h-72 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl w-full px-6 relative z-10">
         {/* Left: Name & Tagline */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -102,7 +127,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-gray-900 border border-green-500 rounded p-6 font-mono text-sm h-fit"
+          className="bg-gray-900 border border-green-500 rounded p-6 font-mono text-sm h-fit backdrop-blur-sm bg-opacity-80"
         >
           <div className="text-green-500 whitespace-pre-wrap mb-4 text-xs">
             {displayText}
@@ -140,7 +165,7 @@ export default function HeroSection() {
           </div>
 
           <div className="mt-6 pt-4 border-t border-green-500 text-xs text-gray-500">
-            <p className="text-green-600 mb-2">> Type 'help' for commands</p>
+            <p className="text-green-600 mb-2">{">"} Type 'help' for commands</p>
           </div>
         </motion.div>
       </div>
