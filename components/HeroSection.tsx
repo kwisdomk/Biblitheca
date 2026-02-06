@@ -13,10 +13,10 @@ export default function HeroSection() {
   });
 
   const terminalLines = [
-    "> Booting Athena Interface...",
-    "> Loading IBM Cybersecurity Modules... ✓",
-    "> Connecting to HPI Network... ✓",
-    "> System Ready.",
+    `${">"}  Booting Athena Interface...`,
+    `${">"}  Loading IBM Cybersecurity Modules... ✓`,
+    `${">"}  Connecting to HPI Network... ✓`,
+    `${">"}  System Ready.`,
   ];
 
   useEffect(() => {
@@ -165,7 +165,7 @@ export default function HeroSection() {
           </div>
 
           <div className="mt-6 pt-4 border-t border-green-500 text-xs text-gray-500">
-            <p className="text-green-600 mb-2">{">"} Type 'help' for commands</p>
+            <p className="text-green-600 mb-2">{`>`} Type 'help' for commands</p>
           </div>
         </motion.div>
       </div>

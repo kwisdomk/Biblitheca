@@ -51,14 +51,14 @@ export default function TerminalConsole() {
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-mono text-sm transition z-40"
       >
-        {isOpen ? "Close" : "> Terminal"}
+        {isOpen ? "Close" : `${">"}  Terminal`}
       </button>
 
       {/* Terminal Window */}
       {isOpen && (
         <div className="fixed bottom-20 right-6 w-96 bg-gray-900 border-2 border-green-500 rounded-lg overflow-hidden shadow-2xl z-50">
           <div className="bg-gray-800 px-4 py-2 border-b border-green-500 flex justify-between items-center">
-            <span className="font-mono text-xs text-green-500">$ athena</span>
+            <span className="font-mono text-xs text-green-500">{`$`} athena</span>
             <button
               onClick={() => setIsOpen(false)}
               className="text-gray-400 hover:text-gray-200"
@@ -73,15 +73,15 @@ export default function TerminalConsole() {
           >
             {history.length === 0 && (
               <div className="text-gray-500">
-                <p>> Welcome to Athena Terminal</p>
-                <p>> Type 'help' to get started</p>
+                <p>{`>`} Welcome to Athena Terminal</p>
+                <p>{`>`} Type 'help' to get started</p>
               </div>
             )}
             {history.map((line, idx) => (
               <div key={idx}>
                 {line.type === "input" ? (
                   <span>
-                    <span className="text-blue-400">$ </span>
+                    <span className="text-blue-400">{`$`} </span>
                     {line.text}
                   </span>
                 ) : (
@@ -92,7 +92,7 @@ export default function TerminalConsole() {
           </div>
 
           <div className="bg-gray-800 px-4 py-3 border-t border-green-500 flex gap-2">
-            <span className="text-blue-400 font-mono text-xs">$</span>
+            <span className="text-blue-400 font-mono text-xs">{`$`}</span>
             <input
               type="text"
               value={input}
