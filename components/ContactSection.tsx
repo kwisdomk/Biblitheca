@@ -60,14 +60,14 @@ export default function ContactSection() {
 
             {/* LinkedIn */}
             <a
-              href="https://linkedin.com/in/wisdomkinoti"
+              href="https://www.linkedin.com/in/133x-bit/"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-blue-700 hover:bg-blue-800 p-6 rounded-lg transition"
             >
               <Linkedin className="w-8 h-8 mx-auto mb-2 text-white" />
               <p className="text-sm text-gray-200">LinkedIn</p>
-              <p className="text-xs text-gray-300 mt-1">/wisdomkinoti</p>
+              <p className="text-xs text-gray-300 mt-1">/133x-bit</p>
             </a>
 
             {/* GitHub */}

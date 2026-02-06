@@ -328,7 +328,7 @@ This project is open source and available under the MIT License.
 
 **Wisdom Kinoti**
 - Email: wisdom@example.com
-- LinkedIn: [linkedin.com/in/wisdomkinoti](https://linkedin.com/in/wisdomkinoti)
+- LinkedIn: [linkedin.com/in/133x-bit](https://www.linkedin.com/in/133x-bit/)
 - GitHub: [github.com/kwisdomk](https://github.com/kwisdomk)
 - Portfolio: [wisdomkinoti.com](https://wisdomkinoti.com)
 

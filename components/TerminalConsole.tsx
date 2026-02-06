@@ -6,7 +6,7 @@ const COMMANDS = {
   help: "Available commands: projects | skills | contact | clear | about",
   projects: "HAKI • Aelpher • Perimeter Lab → Scroll down to see projects",
   skills: "Security (100%) • Frontend (80%) • Backend (70%) • AI/ML (60%) • Cloud (40%)",
-  contact: "Email: wisdom@example.com | LinkedIn: /in/wisdomkinoti | GitHub: /wisdomkinoti",
+  contact: "Email: wisdom@example.com | LinkedIn: /in/133x-bit | GitHub: /wisdomkinoti",
   about: "2nd year CS student at Zetech University | IBM Cybersecurity Bootcamp Specialist",
   clear: "CLEAR",
 };
