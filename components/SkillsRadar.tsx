@@ -22,32 +22,24 @@ export default function SkillsRadar() {
           Skill distribution across core competencies.
         </p>
 
-        <div className="space-y-6">
-          {skills.map((skill, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.05 }}
-              viewport={{ once: true }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-mono font-semibold text-gray-300">
-                  {skill.name}
-                </span>
-                <span className="text-xs text-gray-500">{skill.level}%</span>
+        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-8">
+          <h3 className="text-lg font-bold text-cyan-300 mb-8">SKILL MASTERY</h3>
+          <div className="space-y-6">
+            {skills.map((skill, idx) => (
+              <div key={idx}>
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm font-bold text-gray-300">{skill.name}</span>
+                  <span className="text-sm text-cyan-400 font-mono">{skill.level}%</span>
+                </div>
+                <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-500"
+                    style={{ width: `${skill.level}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${skill.level}%` }}
-                  transition={{ duration: 1, delay: 0.2 }}
-                  viewport={{ once: true }}
-                  className={`h-full ${skill.color} rounded-full`}
-                />
-              </div>
-            </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Specializations */}
