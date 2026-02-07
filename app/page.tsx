@@ -1,260 +1,134 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Terminal, Cpu, Network, Shield, Activity, Lock, Code2, Server } from "lucide-react";
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Cpu, Maximize2, Terminal as TerminalIcon, X } from 'lucide-react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+
+// --- Data ---
+const skillsData = [
+  { subject: 'Security', A: 100, fullMark: 100 },
+  { subject: 'AI Orchestration', A: 85, fullMark: 100 },
+  { subject: 'Frontend', A: 80, fullMark: 100 },
+  { subject: 'Backend', A: 70, fullMark: 100 },
+  { subject: 'Cloud', A: 40, fullMark: 100 },
+  { subject: 'DevOps', A: 40, fullMark: 100 },
+];
+
+const projects = {
+    HAKI: { title: 'Agentic Healthcare Orchestrator', tagline: 'Team Lead in the IBM Dev Day Hackathon.', tech: ['Granite', 'watsonx', 'IBM Maximo'], details: { problem: 'Rural diagnostic gaps.', solution: 'Agentic AI triage via IBM Granite.', result: 'IBM Dev Day Team Lead.' }, link: 'github.com/kwisdomk/haki' },
+    AELPHER: { title: 'Personal Execution OS', tagline: 'A RAG-powered dashboard to synchronize high-velocity context.', tech: ['Next.js', 'Python', 'RAG'], details: { problem: 'High-velocity context switching.', solution: 'Personal RAG pipeline.', result: 'Zero missed deliverables/3.8 GPA.' }, link: 'github.com/kwisdomk/aelpher' },
+};
 
 // --- Components ---
 
-const GlassCard = ({ children, className = "", title, status = "ACTIVE" }) => (
-  <div className={`group relative overflow-hidden rounded-xl border border-white/10 bg-neutral-900/60 backdrop-blur-xl transition-all hover:border-white/20 ${className}`}>
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+const GlassCard = ({ children, className = '', title, onClick, controls }) => (
+  <motion.div layout className={`group relative overflow-hidden rounded-2xl border border-white/5 bg-black/50 backdrop-blur-2xl transition-all duration-300 hover:border-white/20 ${className}`} onClick={onClick}>
     <div className="relative p-6 h-full flex flex-col">
-      {title && (
-        <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+        <div className="mb-4 border-b border-white/10 pb-2 flex justify-between items-center">
           <h3 className="text-sm font-mono text-neutral-400 uppercase tracking-wider">{title}</h3>
-          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
-            status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 
-            status === 'BUILDING' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
-          }`}>
-            {status}
-          </span>
+          <div className="flex items-center gap-2">{controls}</div>
         </div>
-      )}
       {children}
     </div>
-  </div>
+  </motion.div>
 );
 
-const ProgressBar = ({ label, value, color = "bg-blue-500" }) => (
-  <div className="mb-3">
-    <div className="flex justify-between text-xs font-mono text-neutral-400 mb-1">
-      <span>{label}</span>
-      <span>{value}%</span>
-    </div>
-    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-      <div 
-        className={`h-full ${color} transition-all duration-1000 ease-out`} 
-        style={{ width: `${value}%` }}
-      />
-    </div>
-  </div>
+const UtilBar = ({ label, value, colorClass }) => (
+    <div className="w-full"><div className="flex justify-between items-center text-xs text-neutral-400 mb-1 font-mono"><span>{label}</span><span>{value}%</span></div><div className="h-1.5 bg-white/5 rounded-full overflow-hidden"><div className={`h-full ${colorClass}`} style={{ width: `${value}%`, transition: 'width 0.5s ease-in-out' }}></div></div></div>
 );
+
+const ActiveLogEntry = ({ number, date, title, status, focus }) => {
+    const statusColor = status === 'ACTIVE' ? 'text-emerald-400' : status === 'STABLE' ? 'text-blue-400' : 'text-red-400';
+    return (<div className="font-mono text-sm text-neutral-300 mb-4"><p><span className="text-neutral-500">ENTRY {number} ({date}):</span> {title}. <span className={statusColor}>Status: [{status}]</span>. <span className="text-neutral-500">Focus:</span> {focus}</p></div>);
+};
+
+const Clock = () => {
+  const [time, setTime] = useState('');
+  useEffect(() => { const timerId = setInterval(() => { const date = new Date(); const utc3Time = new Date(date.getTime() + (3 * 60 * 60 * 1000)); setTime(utc3Time.toLocaleTimeString('en-GB', { hour12: false, timeZone: 'UTC' })); }, 1000); return () => clearInterval(timerId); }, []);
+  return <span className="text-neutral-500">{time} UTC+3</span>;
+};
+
+const Badge = ({ title, status }) => {
+    const statusColor = status === 'Complete' ? 'bg-green-500' : 'bg-yellow-500';
+    return (<div className="flex items-center justify-between text-xs font-mono p-2 rounded border border-white/10 bg-black/40"><span>{title}</span><div className="flex items-center"><span className={`w-2 h-2 rounded-full ${statusColor} mr-2`}></span><span className="text-neutral-400">{status}</span></div></div>);
+};
+
+const Terminal = ({ onClose }) => {
+    const [history, setHistory] = useState([]);
+    const [input, setInput] = useState('');
+    const inputRef = useRef(null);
+
+    const commands = {
+        help: 'Available commands: help, projects, skills, contact, about, clear',
+        projects: '01: HAKI [Healthcare AI] | 02: AELPHER [Personal RAG]',
+        skills: JSON.stringify({ security: 100, ai_orchestration: 85, frontend: 80, backend: 70, cloud: 40, devops: 40 }, null, 2),
+        contact: 'LinkedIn: /wisdomkinoti | GitHub: /kwisdomk',
+        about: 'Stoic discipline applied to systems architecture. Architecting resilient agentic AI.',
+        clear: () => setHistory([]),
+    };
+
+    const handleCommand = (e) => {
+        if (e.key === 'Enter') {
+            const command = input.trim().toLowerCase();
+            const output = commands[command];
+            const newHistory = [...history, { command, output: output ? output : `Command not found: ${command}` }];
+            if (command === 'clear') {
+                setHistory([]);
+            } else {
+                setHistory(newHistory);
+            }
+            setInput('');
+        }
+    };
+
+    useEffect(() => { inputRef.current?.focus(); }, []);
+
+    return (
+        <GlassCard title="Terminal" className="fixed inset-1/4 z-50" controls={<button onClick={onClose}><X className="w-4 h-4 text-neutral-500 hover:text-white"/></button>}>
+            <div className="h-full overflow-y-auto font-mono text-xs" onClick={() => inputRef.current?.focus()}>
+                {history.map((item, index) => (
+                    <div key={index}>
+                        <span className="text-emerald-400">> </span>{item.command}
+                        <pre className="text-neutral-300 whitespace-pre-wrap">{typeof item.output === 'function' ? '' : item.output}</pre>
+                    </div>
+                ))}
+                <div className="flex">
+                    <span className="text-emerald-400">> </span>
+                    <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleCommand} className="bg-transparent border-none text-neutral-200 w-full focus:outline-none" />
+                </div>
+            </div>
+        </GlassCard>
+    );
+};
 
 export default function Portfolio() {
-  // Simulate Live Metrics
-  const [metrics, setMetrics] = useState({ cpu: 42, ram: 48, net: 120 });
+  const [util, setUtil] = useState({ cpu: 75, ram: 58 });
+  const [expandedNode, setExpandedNode] = useState(null);
+  const [showTerminal, setShowTerminal] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMetrics({
-        cpu: Math.floor(35 + Math.random() * 20),
-        ram: Math.floor(45 + Math.random() * 10),
-        net: Math.floor(100 + Math.random() * 150),
-      });
-    }, 2000);
-    return () => clearInterval(interval);
+      const utilInterval = setInterval(() => { setUtil({ cpu: Math.floor(Math.random() * 25) + 60, ram: Math.floor(Math.random() * 15) + 50 }); }, 2000);
+      return () => clearInterval(utilInterval);
   }, []);
 
+  const terminalButton = <button onClick={() => setShowTerminal(true)} className="p-1 rounded-md hover:bg-white/10"><TerminalIcon className="w-4 h-4" /></button>;
+
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
-      
-      {/* HEADER / IDENTITY */}
-      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-6">
-        <div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 tracking-tight mb-2">
-            WISDOM KINOTI
-          </h1>
-          <p className="text-lg text-neutral-400 font-light flex items-center gap-2">
-            Architect of Agentic AI Systems <span className="text-neutral-700">|</span> 2026
-          </p>
-        </div>
-        <div className="text-right mt-4 md:mt-0">
-          <div className="text-xs font-mono text-neutral-500 mb-1">CURRENT STATUS</div>
-          <div className="flex items-center gap-2 text-emerald-400 text-sm font-mono bg-emerald-950/30 px-3 py-1 rounded-full border border-emerald-500/20">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            IBM INTERNSHIP: ACTIVE
-          </div>
-        </div>
+    <main className="min-h-screen bg-black text-neutral-200 p-4 md:p-8 font-mono selection:bg-emerald-500/30" style={{ scrollBehavior: 'smooth' }}>
+      <AnimatePresence>{showTerminal && <Terminal onClose={() => setShowTerminal(false)} />}</AnimatePresence>
+      <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-end">
+        <div><h1 className="text-3xl md:text-4xl font-bold text-white tracking-tighter">WISDOM KINOTI</h1><p className="text-sm text-neutral-400 font-mono mt-1">SYSTEM ARCHITECT // IBM INTERN // [ACTIVATED: 19.01.26]</p></div>
+        <div className="text-right mt-4 md:mt-0"><div className="flex items-center gap-2 text-emerald-400 text-xs font-mono bg-emerald-950/50 px-3 py-1.5 rounded-full border border-emerald-500/30"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>STATUS: ACTIVE // ATHENA_ENGINE_STABLE</div><div className="text-xs mt-2"><Clock /></div></div>
       </header>
-
-      {/* BENTO GRID LAYOUT */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-[minmax(180px,auto)]">
-        
-        {/* 1. SYSTEM MONITOR (Top Left) - 4 Columns */}
-        <GlassCard className="md:col-span-4" title="SYSTEM: ATHENA" status="ONLINE">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/5 rounded-lg">
-                  <Cpu className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-white">HP VICTUS 15</div>
-                  <div className="text-xs text-neutral-500 font-mono">i5-13420H • RTX 3050 (6GB)</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-2 mt-4">
-              <ProgressBar label="CPU LOAD" value={metrics.cpu} color="bg-blue-500" />
-              <ProgressBar label="RAM (8GB)" value={metrics.ram} color="bg-purple-500" />
-              <div className="flex justify-between text-xs font-mono text-neutral-500 pt-2 border-t border-white/5">
-                <span>NET: {metrics.net} KB/s</span>
-                <span>UPTIME: 24D 03H</span>
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* 2. PROJECT HAKI (Main Center) - 5 Columns */}
-        <GlassCard className="md:col-span-5" title="PROJECT: HAKI" status="ACTIVE">
-          <div className="flex flex-col h-full justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-white mb-2">Agentic Healthcare Orchestrator</h2>
-              <p className="text-sm text-neutral-400 leading-relaxed mb-4">
-                Deploying autonomous AI agents using <span className="text-blue-300">IBM Granite</span> & <span className="text-blue-300">watsonx</span> to triage patients and allocate hospital resources in rural regions.
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {['IBM Granite', 'watsonx', 'Next.js 14', 'IBM Maximo'].map((tech) => (
-                  <span key={tech} className="text-[10px] font-mono px-2 py-1 bg-white/5 border border-white/10 rounded text-neutral-300">
-                    {tech}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                <span className="text-xs text-neutral-500 font-mono">ROLE: TEAM LEAD</span>
-                <span className="text-xs text-neutral-500 font-mono">DEPLOY: IBM CLOUD</span>
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* 3. EXPERIENCE LOG (Top Right) - 3 Columns */}
-        <GlassCard className="md:col-span-3 row-span-2" title="EXECUTION_LOG" status="SYNCED">
-          <div className="relative border-l border-white/10 ml-2 space-y-6 pl-6 py-2">
-            
-            {/* Log Item 1 */}
-            <div className="relative">
-              <span className="absolute -left-[29px] top-1 h-3 w-3 rounded-full border-2 border-neutral-900 bg-emerald-500"></span>
-              <div className="text-xs font-mono text-emerald-400 mb-0.5">JAN 19, 2026</div>
-              <div className="text-sm font-medium text-white">IBM Internship Activated</div>
-              <div className="text-xs text-neutral-500 mt-1">i3 Technologies • Software Dev</div>
-            </div>
-
-            {/* Log Item 2 */}
-            <div className="relative">
-              <span className="absolute -left-[29px] top-1 h-3 w-3 rounded-full border-2 border-neutral-900 bg-blue-500"></span>
-              <div className="text-xs font-mono text-blue-400 mb-0.5">JAN 2026</div>
-              <div className="text-sm font-medium text-white">Project HAKI Launch</div>
-              <div className="text-xs text-neutral-500 mt-1">Dev Day Hackathon Lead</div>
-            </div>
-
-            {/* Log Item 3 */}
-            <div className="relative">
-              <span className="absolute -left-[29px] top-1 h-3 w-3 rounded-full border-2 border-neutral-900 bg-neutral-600"></span>
-              <div className="text-xs font-mono text-neutral-500 mb-0.5">SEP 2025</div>
-              <div className="text-sm font-medium text-neutral-300">Cybersecurity Bootcamp</div>
-              <div className="text-xs text-neutral-500 mt-1">QRadar • Guardium • Verify</div>
-            </div>
-
-            {/* Log Item 4 */}
-            <div className="relative">
-              <span className="absolute -left-[29px] top-1 h-3 w-3 rounded-full border-2 border-neutral-900 bg-neutral-600"></span>
-              <div className="text-xs font-mono text-neutral-500 mb-0.5">CURRENT</div>
-              <div className="text-sm font-medium text-neutral-300">Zetech University</div>
-              <div className="text-xs text-neutral-500 mt-1">Year 2, Sem 2 • Data Science</div>
-            </div>
-
-          </div>
-        </GlassCard>
-
-        {/* 4. AELPHER (Side Card) - 3 Columns */}
-        <GlassCard className="md:col-span-3" title="PROCESS: AELPHER" status="RUNNING">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-start gap-3">
-              <Activity className="w-5 h-5 text-purple-400 mt-1" />
-              <div>
-                <h3 className="text-white font-medium">Internship Co-Pilot</h3>
-                <p className="text-xs text-neutral-500 mt-1">RAG Pipeline managing academic & corporate workflows.</p>
-              </div>
-            </div>
-            <div className="mt-2 p-3 bg-black/20 rounded border border-white/5 font-mono text-[10px] text-green-400/80">
-              {`> NEXT_TASK: CALC_II_ASSIGNMENT`}<br/>
-              {`> PENDING: IBM_GRANITE_DOCS`}<br/>
-              {`> STATUS: OPTIMAL`}
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* 5. RHEL LAB (Bottom Center) - 6 Columns */}
-        <GlassCard className="md:col-span-6" title="ENV: RHEL_10_SANDBOX" status="SECURE">
-          <div className="grid grid-cols-2 gap-4 h-full">
-            <div className="flex flex-col justify-center">
-              <h3 className="text-lg font-medium text-white flex items-center gap-2">
-                <Shield className="w-4 h-4 text-red-400" />
-                System Hardening
-              </h3>
-              <p className="text-xs text-neutral-400 mt-2">
-                Enterprise-grade virtualization environment for testing SELinux policies and kernel tuning.
-              </p>
-              <div className="flex gap-2 mt-4">
-                <span className="text-[10px] bg-red-900/20 text-red-400 px-2 py-1 rounded border border-red-500/20">RH124</span>
-                <span className="text-[10px] bg-neutral-800 text-neutral-400 px-2 py-1 rounded border border-white/10">VMware</span>
-              </div>
-            </div>
-            <div className="bg-black/40 rounded-lg border border-white/5 p-3 font-mono text-[10px] text-neutral-400 overflow-hidden">
-              <div className="text-neutral-500 mb-1"># root@athena-rhel10 [~]</div>
-              <div className="text-white">$ systemctl status firewalld</div>
-              <div className="text-emerald-500">● active (running)</div>
-              <div className="text-white mt-1">$ sestatus</div>
-              <div className="text-neutral-300">SELinux status: enabled</div>
-              <div className="text-neutral-300">Current mode: enforcing</div>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* 6. TECH STACK (Bottom Right) - 3 Columns */}
-        <GlassCard className="md:col-span-3" title="LOADED_MODULES" status="READY">
-          <div className="space-y-4 text-sm">
-            <div>
-              <div className="text-xs font-mono text-neutral-400 uppercase mb-2">AI & Orchestration</div>
-              <div className="space-y-1">
-                <div className="text-neutral-300">IBM Granite</div>
-                <div className="text-neutral-300">watsonx Orchestrate</div>
-                <div className="text-neutral-300">RAG Pipelines</div>
-              </div>
-            </div>
-            <div className="border-t border-white/5 pt-3">
-              <div className="text-xs font-mono text-neutral-400 uppercase mb-2">Systems</div>
-              <div className="space-y-1">
-                <div className="text-neutral-300">RHEL 10</div>
-                <div className="text-neutral-300">VMware</div>
-                <div className="text-neutral-300">Systemd</div>
-              </div>
-            </div>
-            <div className="border-t border-white/5 pt-3">
-              <div className="text-xs font-mono text-neutral-400 uppercase mb-2">Frontend</div>
-              <div className="space-y-1">
-                <div className="text-neutral-300">Next.js 14</div>
-                <div className="text-neutral-300">Tailwind CSS</div>
-                <div className="text-neutral-300">Supabase</div>
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-auto">
+        <div className="md:col-span-12"><GlassCard title="Active Execution Log"><ActiveLogEntry number="01" date="Jan 19, 2026" title="IBM Software Developer Internship" status="ACTIVE" focus="Architecting Agentic AI workflows via IBM Granite and watsonx Orchestrate." /><ActiveLogEntry number="02" date="Current" title="Zetech University // Year 2, Semester 2" status="STABLE" focus="Mastering Data Science and Calculus II while synchronizing academic theory with corporate deliverables." /><ActiveLogEntry number="03" date="Lab Environment" title="RHEL 10 Hardening (RH124)" status="CRITICAL" focus="Kernel optimization, SELinux policies, and enterprise virtualization within VMware sandboxes." /></GlassCard></div>
+        <div className="md:col-span-3"><GlassCard title="Host: Athena v1.2" controls={terminalButton}><p className="font-mono text-xs text-neutral-400">13th Gen i5-13420H // RTX 3050 6GB // 8.00 GB DDR4</p><div className="mt-4 space-y-3"><UtilBar label="CPU_UTIL" value={util.cpu} colorClass="bg-green-500" /><UtilBar label="RAM_UTIL" value={util.ram} colorClass="bg-blue-500" /></div></GlassCard></div>
+        <AnimatePresence>{expandedNode ? (<motion.div layoutId={expandedNode} className="md:col-span-6"><GlassCard title={`NODE: ${expandedNode}`} controls={<button onClick={() => setExpandedNode(null)}><X className="w-4 h-4 text-neutral-500 hover:text-white"/></button>}><h2 className="text-lg font-bold text-white mb-2">{projects[expandedNode].title}</h2><div className="text-xs font-mono space-y-2 text-neutral-300"><p><strong className='text-neutral-500'>Problem:</strong> {projects[expandedNode].details.problem}</p><p><strong className='text-neutral-500'>Solution:</strong> {projects[expandedNode].details.solution}</p><p><strong className='text-neutral-500'>Result:</strong> {projects[expandedNode].details.result}</p></div><a href={`https://${projects[expandedNode].link}`} target="_blank" className="text-xs font-mono mt-4 text-emerald-400 hover:underline">{projects[expandedNode].link}</a></GlassCard></motion.div>) : (<><div className="md:col-span-3"><GlassCard title="NODE: HAKI" controls={<button onClick={() => setExpandedNode('HAKI')}><Maximize2 className="w-4 h-4 text-neutral-500 group-hover:text-white transition-colors"/></button>}><h2 className="text-lg font-bold text-white mb-2">{projects.HAKI.title}</h2><p className="text-xs text-neutral-400 mb-3">{projects.HAKI.tagline}</p><div className="flex flex-wrap gap-2">{projects.HAKI.tech.map(tech => <span key={tech} className="text-[10px] font-mono px-2 py-1 bg-white/5 border border-white/10 rounded text-neutral-300">{tech}</span>)}</div></GlassCard></div><div className="md:col-span-3"><GlassCard title="NODE: AELPHER" controls={<button onClick={() => setExpandedNode('AELPHER')}><Maximize2 className="w-4 h-4 text-neutral-500 group-hover:text-white transition-colors"/></button>}><h2 className="text-lg font-bold text-white mb-2">{projects.AELPHER.title}</h2><p className="text-xs text-neutral-400">{projects.AELPHER.tagline}</p><div className="flex flex-wrap gap-2">{projects.AELPHER.tech.map(tech => <span key={tech} className="text-[10px] font-mono px-2 py-1 bg-white/5 border border-white/10 rounded text-neutral-300">{tech}</span>)}</div></GlassCard></div></>)}</AnimatePresence>
+        <div className="md:col-span-3"><GlassCard title="Technical Arsenal"><ResponsiveContainer width="100%" height={200}><RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillsData}><PolarGrid stroke="rgba(255, 255, 255, 0.2)"/><PolarAngleAxis dataKey="subject" stroke="rgba(255, 255, 255, 0.7)" tickLine={false} axisLine={false} fontSize={10} /><Radar name="Skills" dataKey="A" stroke="#10B981" fill="#10B981" fillOpacity={0.6} /></RadarChart></ResponsiveContainer></GlassCard></div>
+        <div className="md:col-span-3"><GlassCard title="Badge Wall"><div className="space-y-3"><Badge title="IBM QRadar SIEM Specialist" status="Complete" /><Badge title="IBM Guardium Data Protection" status="Complete" /><Badge title="Red Hat System Admin [RH124]" status="In-Progress" /></div></GlassCard></div>
       </div>
-
-      {/* Footer */}
-      <footer className="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 text-center text-xs text-neutral-600 font-mono">
-        © 2026 Wisdom Kinoti • System Architect • Built with Next.js 14 & Tailwind CSS
-      </footer>
+      <footer className="max-w-7xl mx-auto mt-12 pt-6 border-t border-white/10 text-center"><p className="text-sm text-neutral-400 mb-4 font-mono">"I operate at the intersection of technical mastery and philosophical inquiry. Prioritizing deep system understanding over surface-level completion."</p><p className="text-xs text-neutral-600 font-mono">Built with Next.js 14 & Athena Engine | © 2026 WISDOM KINOTI</p></footer>
     </main>
   );
 }
